@@ -27,7 +27,9 @@ def test_scores(clf):
   cross_val_scores = cross_val_score(clf,X_test,y_test,cv=3,scoring='average_precision')
   average_precision_score = metrics.average_precision_score(y_test, y_pred)
   roc_auc_score = metrics.roc_auc_score(y_test, y_pred)
-  return cross_val_scores,average_precision_score,roc_auc_score
+  precision_score = metrics.precision_score(y_test, y_pred)
+
+  return cross_val_scores,average_precision_score,roc_auc_score,precision_score
 
 clf_rf = RandomForestClassifier(n_estimators=100)
 clf_gbdt = GradientBoostingClassifier(n_estimators=100)
@@ -51,7 +53,6 @@ from sk_tree_lr import RF_LR,GBDT_LR
 clf_rf_lr = RF_LR()
 clf_rf_lr.fit(X, y)
 print "RF_LR : ",clf_rf_lr.scores(X_test,y_test)
-
 
 clf_rf_lr = GBDT_LR()
 clf_rf_lr.fit(X, y)
