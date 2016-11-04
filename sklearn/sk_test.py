@@ -41,15 +41,18 @@ clf_fc = Pipeline([
 clf_fc.fit(X, y)
 
 print "FC :",test_scores(clf_fc)
-'''
 print "LR : ",test_scores(clf_lr)
 print "SVM : ",test_scores(clf_svm)
 print "RF : ",test_scores(clf_rf)
 print "GBDT : " ,test_scores(clf_gbdt)
 
-'''
 
-from sk_tree_lr import RF_LR 
-clf_rf_lr = RF_LR(tree='gbdt')
+from sk_tree_lr import RF_LR,GBDT_LR
+clf_rf_lr = RF_LR()
 clf_rf_lr.fit(X, y)
-print clf_rf_lr.scores(X_test,y_test) 
+print "RF_LR : ",clf_rf_lr.scores(X_test,y_test)
+
+
+clf_rf_lr = GBDT_LR()
+clf_rf_lr.fit(X, y)
+print "GBDT_LR : ",clf_rf_lr.scores(X_test,y_test)
