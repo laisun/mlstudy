@@ -108,6 +108,12 @@ class RF_LR(object):
 
     return average_precision_score,roc_auc_score,precision_score
 
+  def classification_report(self,X_test,y_test):
+    """the report includes: precision recall f1_score et al.
+    """
+
+    y_pred = self.predict(X_test)
+    return metrics.classification_report(y_test, y_pred)
 
 class GBDT_LR(object):
   """Tree model plus Logistic Regression.
@@ -122,7 +128,7 @@ class GBDT_LR(object):
 
   """
 
-  def __init__(self,n_estimator=100,max_depth=3):
+  def __init__(self,n_estimator=100):
     """ make a initiation of the models.
 
     Parameters
@@ -147,6 +153,7 @@ class GBDT_LR(object):
     y_train : array with shape = [n_samples, 1] ,its dtype is int.
 
     """
+
     self.trees.fit(X_train, y_train)
     self.encoder.fit(self.trees.apply(X_train)[:, :, 0])
 
@@ -206,3 +213,9 @@ class GBDT_LR(object):
 
     return average_precision_score,roc_auc_score,precision_score
 
+  def classification_report(self,X_test,y_test):
+    """the report includes: precision recall f1_score et al.
+    """
+
+    y_pred = self.predict(X_test)
+    return metrics.classification_report(y_test, y_pred)
