@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""
+sklearn >= 0.17.1
+
+"""
 import os,sys
 
 import sklearn
