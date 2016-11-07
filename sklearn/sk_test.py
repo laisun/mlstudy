@@ -13,6 +13,9 @@ from sklearn import metrics
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectFromModel
 
+from sklearn.neural_network import BernoulliRBM #MLPClassifier
+from sklearn import metrics
+
 import numpy as np
 import collections
 
@@ -30,7 +33,7 @@ def test_scores(clf):
   precision_score = metrics.precision_score(y_test, y_pred)
 
   return cross_val_scores,average_precision_score,roc_auc_score,precision_score
-
+'''
 clf_rf = RandomForestClassifier(n_estimators=100)
 clf_gbdt = GradientBoostingClassifier(n_estimators=100)
 clf_svm = sklearn.svm.SVC()
@@ -57,3 +60,42 @@ print "RF_LR : ",clf_rf_lr.scores(X_test,y_test)
 clf_rf_lr = GBDT_LR()
 clf_rf_lr.fit(X, y)
 print "GBDT_LR : ",clf_rf_lr.scores(X_test,y_test)
+'''
+
+# neural network
+# require sklearn >= 0.18.0
+'''
+mlp = MLPClassifier(hidden_layer_sizes=(30,30,30))
+mlp.fit(X,y)
+y_pred = mlp.predict(X_test)
+print (metrics.classification_report(y_test,y_pred))
+'''
+
+# nn + LR
+logistic = linear_model.LogisticRegression()
+rbm = BernoulliRBM(random_state=0, verbose=True)
+rbm2 = BernoulliRBM(random_state=0, verbose=True)
+classifier = Pipeline(
+       steps=
+         [
+	    ('rbm', rbm),
+	    ('rbm2',rbm2),
+	    ('logistic', logistic)
+	 ])
+
+rbm.learning_rate = 0.01
+rbm.n_iter = 100 
+rbm.n_components = 256 
+rbm2.n_components = 50
+rbm2.learning_rate = 0.01
+rbm2.n_iter = 50
+logistic.C = 1000.0
+
+# Training RBM-Logistic Pipeline
+classifier.fit(X, y)
+print()
+print("Logistic regression using RBM features:\n%s\n" % (
+		metrics.classification_report(
+		    y_test,
+		    classifier.predict(X_test))))
+
