@@ -5,6 +5,7 @@
 sklearn >= 0.17.1
 
 """
+
 import os,sys
 
 import sklearn
@@ -37,7 +38,10 @@ class RF_LR(object):
 
     """
 
-    self.trees = RandomForestClassifier(n_estimators=n_estimator,max_depth=max_depth)
+    self.trees = RandomForestClassifier(
+                           n_estimators=n_estimator,
+			   max_depth=max_depth
+			)
     self.encoder = preprocessing.OneHotEncoder()
     self.lr = linear_model.LogisticRegression()
 
@@ -52,11 +56,23 @@ class RF_LR(object):
     y_train : array with shape = [n_samples, 1] ,its dtype is int.
 
     """
+
+    '''train the trees and encoder'''
     self.trees.fit(X_train, y_train)
     self.encoder.fit(self.trees.apply(X_train))
-
+    
+    '''get the tree features and encode'''
+    X_train_encodes = self.encoder.transform(
+                          self.trees.apply(X_train)
+		       ).toarray()
+  
+    '''merge the source features as the final features'''
+    X_train_merge = []
+    for i in range(0,len(X_train_encodes)):
+      X_train_merge.append(list(X_train[i]) + list(X_train_encodes[i]))	
+    
     self.lr.fit(
-             self.encoder.transform(self.trees.apply(X_train)), 
+             X_train_merge, 
              y_train
 	    )
   
@@ -73,9 +89,16 @@ class RF_LR(object):
     y : array of shape = [n_samples,1]
 
     """
+    
+    X_test_encodes = self.encoder.transform(
+                          self.trees.apply(X_test)
+		      ).toarray()
 
+    X_test_merge = []
+    for i in range(0,len(X_test_encodes)):
+      X_test_merge.append(list(X_test[i]) + list(X_test_encodes[i]))	
     y_pred = self.lr.predict(
-                 self.encoder.transform(self.trees.apply(X_test))
+                  X_test_merge
 	       )
 
     return y_pred
@@ -161,9 +184,18 @@ class GBDT_LR(object):
     self.trees.fit(X_train, y_train)
     self.encoder.fit(self.trees.apply(X_train)[:, :, 0])
 
+    X_train_encodes = self.encoder.transform(
+                           self.trees.apply(X_train)[:, :, 0]
+			).toarray()
+
+    X_train_merge = []
+    for i in range(0,len(X_train_encodes)):
+      X_train_merge.append(list(X_train[i]) + list(X_train_encodes[i]))
+
     self.lr.fit(
-            self.encoder.transform(self.trees.apply(X_train)[:, :, 0]), 
-            y_train)
+            X_train_merge,
+            y_train
+	 )
   
   def predict(self,X_test):
     """Predict class for X.
@@ -179,8 +211,15 @@ class GBDT_LR(object):
 
     """
 
+    X_test_encodes = self.encoder.transform(
+                          self.trees.apply(X_test)[:, :, 0]
+		      ).toarray()
+
+    X_test_merge = []
+    for i in range(0,len(X_test_encodes)):
+      X_test_merge.append(list(X_test[i]) + list(X_test_encodes[i]))	
     y_pred = self.lr.predict(
-                 self.encoder.transform(self.trees.apply(X_test)[:, :, 0])
+                  X_test_merge
 	       )
 
     return y_pred

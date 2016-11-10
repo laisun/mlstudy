@@ -10,18 +10,13 @@ import numpy as np
 import collections
 
 def v_to_idx(value_list):
-  d = dict()
-  v_to_idx = dict()
-  for v in value_list:
-    if v not in d: 
-      v_to_idx[v] = len(v_to_idx)
-      d[v] = 1
-  return v_to_idx
+  li = list(set(value_list))
+  return dict((v, k) for k, v in enumerate(li))
 
 class DataPreprocessing(object):
   def __init__(self,CATEGORICAL_COLUMNS,CONTINUOUS_COLUMNS,y_column,y_to_idx):
-    """
-
+    """process the cate features and number features respectively.
+    
     Parameters
     -----------
     CATEGORICAL_COLUMNS : list of cate_column names.
@@ -108,4 +103,5 @@ class DataPreprocessing(object):
       X_test.append(list(X_test_num[i]) + list(X_test_cate[i]))
   
     return y_train,X_train,y_test,X_test
+
 
