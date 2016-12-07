@@ -19,20 +19,26 @@ from sklearn import metrics
 import numpy as np
 import collections
 
-from adult_data import *
+#from adult_data import *
+from wx_marry_data import *
 
-y,X,y_test,X_test = read_adult_data()
+#y,X,y_test,X_test = read_adult_data()
+y,X,y_test,X_test = read_marry_data()
+
+X_dev,y_dev = read_dev_marry_data()
 
 def test_scores(clf):
   clf = clf.fit(X, y)
   y_pred = clf.predict(X_test)
   
-  cross_val_scores = cross_val_score(clf,X_test,y_test,cv=3,scoring='average_precision')
-  average_precision_score = metrics.average_precision_score(y_test, y_pred)
-  roc_auc_score = metrics.roc_auc_score(y_test, y_pred)
+  roc_auc_score = metrics.roc_auc_score(y_test, clf.predict_proba(X_test))
   precision_score = metrics.precision_score(y_test, y_pred)
+  recall_score = metrics.recall_score(y_test, y_pred)
+  accuracy_score = metrics.accuracy_score(y_test, y_pred)
+  print metrics.classification_report(y_test,y_pred)
 
-  return cross_val_scores,average_precision_score,roc_auc_score,precision_score
+  return "auc = {:g}, precison = {:g}, recall = {:g}, acc = {:g}".format\
+	 (roc_auc_score,precision_score,recall_score,accuracy_score)
 
 clf_rf = RandomForestClassifier(n_estimators=100)
 clf_gbdt = GradientBoostingClassifier(n_estimators=100)
@@ -42,30 +48,52 @@ clf_lr = sklearn.linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
 clf_fc = Pipeline([
         ('feature_selection', SelectFromModel(RandomForestClassifier())),
         ('classification', sklearn.linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6))
-     ])
+])
 
 '''
-print "FC :",test_scores(clf_fc)
-print "LR : ",test_scores(clf_lr)
-print "SVM : ",test_scores(clf_svm)
-print "RF : ",test_scores(clf_rf)
+print "FC  :",test_scores(clf_fc)
+print "LR  :",test_scores(clf_lr)
+print "SVM :",test_scores(clf_svm)
+print "RF  :",test_scores(clf_rf)
+'''
 print "GBDT : " ,test_scores(clf_gbdt)
-'''
 
+'''
+res = clf_gbdt.predict_proba(X_dev)
+
+src_data = read_src_marry_data()
+print >> sys.stderr,len(res),len(src_data)
+i = 0
+feas = ["uin","datasource","flag","ds","marry_satus","fsex","fage"]
+#print ",".join(feas)
+for row in src_data:
+  fdate = "201611"
+  if i < 0.70*len(res):
+      fdate = "201610"
+  li = [row['useruin'],"train","A,0,0,0,0,0,0,0,0,0,0,0,0="+str(row['credict']),
+        fdate,str(int(res[i,1]*1000)),row["fsex"],row["fage"]]
+  print "\t".join(li)
+  i += 1
+'''
 
 from sk_tree_lr import RF_LR,GBDT_LR
 '''
+print "RF_LR"
+print "n_estimators,auc"
 for n_estimators  in range(5,101,5):
-  print n_estimators
   clf_rf_lr = RF_LR(n_estimator=n_estimators)
   clf_rf_lr.fit(X, y)
-  print "RF_LR : auc = ",clf_rf_lr.scores(X_test,y_test)[1]
+  print "{0},{1}".format\
+      (n_estimators,clf_rf_lr.scores(X_test,y_test)[1])#[0]["roc_auc_score"])
 '''
 
+print "GBDT_LR"
+print "n_estimators,auc"
 for n_estimators  in range(5,101,5):
   clf_rf_lr = GBDT_LR(n_estimator=n_estimators)
   clf_rf_lr.fit(X, y)
-  print "GBDT_LR : auc = ",clf_rf_lr.scores(X_test,y_test)[1]
+  print "{0},{1}" .format \
+        (n_estimators,clf_rf_lr.scores(X_test,y_test)[1])#[0]["roc_auc_score"])
 
 # neural network
 # require sklearn >= 0.18.0
@@ -73,8 +101,10 @@ mlp = MLPClassifier(hidden_layer_sizes=(30,30,30))
 
 mlp.fit(X,y)
 y_pred = mlp.predict(X_test)
+print "MLP classifier "
 print metrics.classification_report(y_test,y_pred)
 print metrics.confusion_matrix(y_test,y_pred)
+print 
 
 '''
 # nn + LR
@@ -99,4 +129,34 @@ print("Logistic regression using RBM features:\n%s\n" % (
 		metrics.classification_report(
 		    y_test,
 		    classifier.predict(X_test))))
+'''
+'''
+from keras.models import Sequential
+from keras.layers import Dense,Dropout
+
+model = Sequential()
+model.add(
+            Dense(
+               input_dim = len(X[0]),
+               output_dim = 200, 
+               activation='tanh',
+               init='uniform')
+)
+model.add(Dropout(0.5))
+model.add(Dense(30,activation='tanh'))
+model.add(Dense(1,activation='sigmoid'))
+
+model.compile(
+      loss='binary_crossentropy',
+      optimizer='adadelta',
+      metrics=['accuracy']
+)
+
+model.fit(X,y,
+          nb_epoch=20,
+          batch_size=16
+)
+
+print model.evaluate(X_test,y_test,batch_size=16)
+
 '''

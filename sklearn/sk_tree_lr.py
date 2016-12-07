@@ -41,7 +41,7 @@ class RF_LR(object):
     self.trees = RandomForestClassifier(
                            n_estimators=n_estimator,
 			   max_depth=max_depth
-			)
+            		)
     self.encoder = preprocessing.OneHotEncoder()
     self.lr = linear_model.LogisticRegression()
 
@@ -74,7 +74,7 @@ class RF_LR(object):
     self.lr.fit(
              X_train_merge, 
              y_train
-	    )
+    )
   
   def predict(self,X_test):
     """Predict class for X.
@@ -97,9 +97,18 @@ class RF_LR(object):
     X_test_merge = []
     for i in range(0,len(X_test_encodes)):
       X_test_merge.append(list(X_test[i]) + list(X_test_encodes[i]))	
-    y_pred = self.lr.predict(
-                  X_test_merge
-	       )
+    y_pred = self.lr.predict(X_test_merge)
+    return y_pred
+
+  def predict_proba(self,X_test):
+    X_test_encodes = self.encoder.transform(
+                          self.trees.apply(X_test)
+		      ).toarray()
+
+    X_test_merge = []
+    for i in range(0,len(X_test_encodes)):
+      X_test_merge.append(list(X_test[i]) + list(X_test_encodes[i]))	
+    y_pred = self.lr.predict_proba(X_test_merge)
 
     return y_pred
 
@@ -129,11 +138,25 @@ class RF_LR(object):
     """
 
     y_pred = self.predict(X_test)
-    average_precision_score = metrics.average_precision_score(y_test, y_pred)
-    roc_auc_score = metrics.roc_auc_score(y_test, y_pred)
-    precision_score = metrics.precision_score(y_test, y_pred)
+    y_pred_proba = self.predict_proba(X_test)
 
-    return average_precision_score,roc_auc_score,precision_score
+    average_precision_score = metrics.average_precision_score(y_test, y_pred)
+    roc_auc_score = metrics.roc_auc_score(y_test, y_pred_proba)
+    precision_score = metrics.precision_score(y_test, y_pred)
+    recall_score = metrics.recall_score(y_test, y_pred)
+    accuracy_score = metrics.accuracy_score(y_test, y_pred)
+
+    score_dict = {
+	      "average_precision_score" : average_precision_score,
+              "roc_auc_score" : roc_auc_score,
+	      "precision_score" : precision_score,
+	      "recall_score" : recall_score,
+	      "accuracy_score" : accuracy_score 
+	    }
+    s = ""
+    for m,v in score_dict.items():
+      s += "{} = {:g}".format(m,v)
+    return score_dict,s  
 
   def classification_report(self,X_test,y_test):
     """the report includes: precision recall f1_score et al.
@@ -224,6 +247,34 @@ class GBDT_LR(object):
 
     return y_pred
 
+
+  def predict_proba(self,X_test):
+    """Predict class for X.
+      the predicted class is the one with highest probability.
+
+    Parameters
+    ----------
+    X_test : array with shape = [n_samples, n_features],its dtype is float32.
+
+    Returns
+    -------
+    y : array of shape = [n_samples,1]
+
+    """
+
+    X_test_encodes = self.encoder.transform(
+                          self.trees.apply(X_test)[:, :, 0]
+		      ).toarray()
+
+    X_test_merge = []
+    for i in range(0,len(X_test_encodes)):
+      X_test_merge.append(list(X_test[i]) + list(X_test_encodes[i]))	
+    y_pred = self.lr.predict_proba(
+                  X_test_merge
+	       )
+
+    return y_pred
+
   def scores(self,X_test,y_test):
     """make a evaluation of the model.
 
@@ -250,12 +301,26 @@ class GBDT_LR(object):
     """
 
     y_pred = self.predict(X_test)
+    y_pred_proba = self.predict_proba(X_test)
+
     average_precision_score = metrics.average_precision_score(y_test, y_pred)
-    roc_auc_score = metrics.roc_auc_score(y_test, y_pred)
+    roc_auc_score = metrics.roc_auc_score(y_test, y_pred_proba)
     precision_score = metrics.precision_score(y_test, y_pred)
+    recall_score = metrics.recall_score(y_test, y_pred)
+    accuracy_score = metrics.accuracy_score(y_test, y_pred)
 
-    return average_precision_score,roc_auc_score,precision_score
 
+    score_dict = {
+	      "average_precision_score" : average_precision_score,
+              "roc_auc_score" : roc_auc_score,
+	      "precision_score" : precision_score,
+	      "recall_score" : recall_score,
+	      "accuracy_score" : accuracy_score 
+	    }
+    s = ""
+    for m,v in score_dict.items():
+      s += "{} = {:g}".format(m,v)
+    return score_dict,s  
   def classification_report(self,X_test,y_test):
     """the report includes: precision recall f1_score et al.
     """
