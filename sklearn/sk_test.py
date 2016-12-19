@@ -19,19 +19,21 @@ from sklearn import metrics
 import numpy as np
 import collections
 
-#from adult_data import *
-from wx_marry_data import *
+from adult_data import *
+#from wx_marry_data import *
 
-#y,X,y_test,X_test = read_adult_data()
-y,X,y_test,X_test = read_marry_data()
+y,X,y_test,X_test = read_adult_data()
+#y,X,y_test,X_test = read_marry_data()
 
-X_dev,y_dev = read_dev_marry_data()
+#X_dev,y_dev = read_dev_marry_data()
 
 def test_scores(clf):
   clf = clf.fit(X, y)
   y_pred = clf.predict(X_test)
-  
-  roc_auc_score = metrics.roc_auc_score(y_test, clf.predict_proba(X_test))
+  y_proba = clf.predict_proba(X_test)  
+  y_proba = [p[1] for p in y_proba]
+
+  roc_auc_score = metrics.roc_auc_score(y_test,y_proba)
   precision_score = metrics.precision_score(y_test, y_pred)
   recall_score = metrics.recall_score(y_test, y_pred)
   accuracy_score = metrics.accuracy_score(y_test, y_pred)
@@ -50,34 +52,13 @@ clf_fc = Pipeline([
         ('classification', sklearn.linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6))
 ])
 
-'''
 print "FC  :",test_scores(clf_fc)
 print "LR  :",test_scores(clf_lr)
-print "SVM :",test_scores(clf_svm)
+#print "SVM :",test_scores(clf_svm)
 print "RF  :",test_scores(clf_rf)
-'''
 print "GBDT : " ,test_scores(clf_gbdt)
 
-'''
-res = clf_gbdt.predict_proba(X_dev)
-
-src_data = read_src_marry_data()
-print >> sys.stderr,len(res),len(src_data)
-i = 0
-feas = ["uin","datasource","flag","ds","marry_satus","fsex","fage"]
-#print ",".join(feas)
-for row in src_data:
-  fdate = "201611"
-  if i < 0.70*len(res):
-      fdate = "201610"
-  li = [row['useruin'],"train","A,0,0,0,0,0,0,0,0,0,0,0,0="+str(row['credict']),
-        fdate,str(int(res[i,1]*1000)),row["fsex"],row["fage"]]
-  print "\t".join(li)
-  i += 1
-'''
-
 from sk_tree_lr import RF_LR,GBDT_LR
-'''
 print "RF_LR"
 print "n_estimators,auc"
 for n_estimators  in range(5,101,5):
@@ -85,7 +66,6 @@ for n_estimators  in range(5,101,5):
   clf_rf_lr.fit(X, y)
   print "{0},{1}".format\
       (n_estimators,clf_rf_lr.scores(X_test,y_test)[1])#[0]["roc_auc_score"])
-'''
 
 print "GBDT_LR"
 print "n_estimators,auc"
@@ -106,7 +86,6 @@ print metrics.classification_report(y_test,y_pred)
 print metrics.confusion_matrix(y_test,y_pred)
 print 
 
-'''
 # nn + LR
 logistic = linear_model.LogisticRegression()
 rbm = BernoulliRBM(random_state=0, verbose=True)
@@ -129,7 +108,6 @@ print("Logistic regression using RBM features:\n%s\n" % (
 		metrics.classification_report(
 		    y_test,
 		    classifier.predict(X_test))))
-'''
 '''
 from keras.models import Sequential
 from keras.layers import Dense,Dropout

@@ -56,13 +56,12 @@ class DataPreprocessing(object):
     cate_feats_count = collections.defaultdict(set)
     for row in csv.DictReader(open(csv_file)):
       for feat in self.CATEGORICAL_COLUMNS:	
-        cate_feats_count[feat].update(row[feat].strip())
+        cate_feats_count[feat].update([row[feat].strip().lower()])
 
-    cate_feat_id_mapping = collections.defaultdict(dict)
+    self.cate_feat_id_mapping = collections.defaultdict(dict)
     for feat in self.CATEGORICAL_COLUMNS:
-      cate_feat_id_mapping[feat] = set_to_dict(cate_feats_count[feat])
+      self.cate_feat_id_mapping[feat] = set_to_dict(cate_feats_count[feat])
 
-    return cate_feat_id_mapping
 
   def read_data(self,csv_file,y_column=None):
     """read the csv data file ,to get y labels list 
@@ -70,8 +69,7 @@ class DataPreprocessing(object):
     """
 
     y,X_num,X_cate = [],[],[]
-    cate_feat_id_mapping = self.catefeat_v_to_id_mapping(csv_file)
-    
+
     count = 0
     for row in csv.DictReader(open(csv_file)):
       count += 1
@@ -84,8 +82,8 @@ class DataPreprocessing(object):
 	x1.append(w)
 
       # cate features
-      x2 = [ cate_feat_id_mapping[feat][row[feat].strip()] 
-             for feat in self.CATEGORICAL_COLUMNS ]
+      x2 = [ self.cate_feat_id_mapping[feat][row[feat].strip().lower()] 
+               for feat in self.CATEGORICAL_COLUMNS ]
       for i in range(len(self.BUCKET_COLUMNS)):
 	feat = self.BUCKET_COLUMNS[i]  
 	bucket_value = bucket_encode(int(row[feat].strip()),
@@ -113,7 +111,9 @@ class DataPreprocessing(object):
     X_all_num = np.array(X_num + X_test_num)
     X_num = np.array(X_num)
     X_test_num = np.array(X_test_num)
-    self.num_scaler = preprocessing.StandardScaler().fit(X_num)
+
+    self.num_scaler = preprocessing.MinMaxScaler()#StandardScaler()
+    self.num_scaler.fit(X_all_num)
     
     X_num = self.num_scaler.transform(X_num)
     X_test_num = self.num_scaler.transform(X_test_num)
@@ -128,7 +128,7 @@ class DataPreprocessing(object):
     X_train = []
     for i in range(X_num.shape[0]):
       X_train.append(list(X_num[i]) + list(X_cate[i]))
-
+    
     X_test = []
     for i in range(X_test_num.shape[0]):
       X_test.append(list(X_test_num[i]) + list(X_test_cate[i]))

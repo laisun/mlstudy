@@ -139,6 +139,7 @@ class RF_LR(object):
 
     y_pred = self.predict(X_test)
     y_pred_proba = self.predict_proba(X_test)
+    y_pred_proba = [p[1] for p in y_pred_proba]
 
     average_precision_score = metrics.average_precision_score(y_test, y_pred)
     roc_auc_score = metrics.roc_auc_score(y_test, y_pred_proba)
@@ -155,7 +156,7 @@ class RF_LR(object):
 	    }
     s = ""
     for m,v in score_dict.items():
-      s += "{} = {:g}".format(m,v)
+      s += "{} = {:g}, ".format(m,v)
     return score_dict,s  
 
   def classification_report(self,X_test,y_test):
@@ -302,6 +303,7 @@ class GBDT_LR(object):
 
     y_pred = self.predict(X_test)
     y_pred_proba = self.predict_proba(X_test)
+    y_pred_proba = [p[1] for p in y_pred_proba]
 
     average_precision_score = metrics.average_precision_score(y_test, y_pred)
     roc_auc_score = metrics.roc_auc_score(y_test, y_pred_proba)
@@ -319,7 +321,7 @@ class GBDT_LR(object):
 	    }
     s = ""
     for m,v in score_dict.items():
-      s += "{} = {:g}".format(m,v)
+      s += "{} = {:g}, ".format(m,v)
     return score_dict,s  
   def classification_report(self,X_test,y_test):
     """the report includes: precision recall f1_score et al.

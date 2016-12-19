@@ -30,11 +30,12 @@ adult_data_processing = DataPreprocessing(
                             v_to_idx
 			)
 
+adult_data_processing.catefeat_v_to_id_mapping('../data/adult/adult.data')
 def read_adult_data():
   y_train,X_train,y_test,X_test = \
       adult_data_processing.read_train_test(
-           './data/adult.data',
-	   './data/adult.test'
+           '../data/adult/adult.data',
+	   '../data/adult/adult.test'
       )	
   return y_train,X_train,y_test,X_test
 

@@ -11,11 +11,7 @@ import collections
 from sk_data_reprecessing import DataPreprocessing
 
 cates = ["fsex"]  #fage
-numbers = ["fage","baby_cnt_201610", "readmsg_ratio_d84", 
-           "readmsg_ratio_d96","readmsg_ratio_d101","readmsg_ratio_d103",
-	   "sharesns_ratio_d95","sharesns_ratio_d97","sharesns_ratio_d100",
-	   "sharesns_ratio_d120","cnt"
-	   ]
+numbers = "fage,baby_cnt_read,uin,readmsg_ratio_d84,readmsg_ratio_d96,readmsg_ratio_d101,readmsg_ratio_d103,sharesns_ratio_d95,sharesns_ratio_d97,sharesns_ratio_d100,sharesns_ratio_d120,baby_cnt_relations,cnt".split(',')
 
 BUCKET_COLUMNS = ['fage']
 bucket_boundaries = [[18, 25, 30, 35, 40, 45]]
@@ -31,7 +27,7 @@ data_processing = DataPreprocessing(
 			    y_column,
                             v_to_idx
 			)
-
+data_processing.catefeat_v_to_id_mapping('./data/marry/wx_marry.train')
 def read_marry_data():
   y_train,X_train,y_test,X_test = \
       data_processing.read_train_test(
