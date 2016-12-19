@@ -1,0 +1,1 @@
+useruin,status,fsex,fage,useruin0,baby_cnt_201610,uin,readmsg_ratio_d84,readmsg_ratio_d96,readmsg_ratio_d101,readmsg_ratio_d103,sharesns_ratio_d95,sharesns_ratio_d97,sharesns_ratio_d100,sharesns_ratio_d120,sharesns_ratio_d117
