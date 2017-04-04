@@ -17,7 +17,16 @@ import numpy as np
 
 class RF_LR(object):
   """Tree model plus Logistic Regression.
+  组合分类模型,用随机森林作为特征转换.
+  tree models: 随机森林模型
+  LR :逻辑回归模型
 
+  1)X_train训练随机森林分类模型;
+  2)森林的每棵子树对样本分别分类，得到分类结果;
+  3)用encoder对子树的分类结果进行编码，得到X_train_encode;
+  4)X_train + X_train_encode 组成新特征，作为LR的训练特征;
+  5)训练LR分类模型.   
+ 
   Parameters
   ----------
   trees : the tree model to make feature transformation.
@@ -41,7 +50,7 @@ class RF_LR(object):
     self.trees = RandomForestClassifier(
                            n_estimators=n_estimator,
 			   max_depth=max_depth
-            		)
+    )
     self.encoder = preprocessing.OneHotEncoder()
     self.lr = linear_model.LogisticRegression()
 
@@ -61,7 +70,7 @@ class RF_LR(object):
     self.trees.fit(X_train, y_train)
     self.encoder.fit(self.trees.apply(X_train))
     
-    '''get the tree features and encode'''
+    '''get the tree features and transform'''
     X_train_encodes = self.encoder.transform(
                           self.trees.apply(X_train)
 		       ).toarray()
@@ -70,23 +79,25 @@ class RF_LR(object):
     X_train_merge = []
     for i in range(0,len(X_train_encodes)):
       X_train_merge.append(list(X_train[i]) + list(X_train_encodes[i]))	
-    
+   
+    '''train LR classification model.''' 
     self.lr.fit(
              X_train_merge, 
              y_train
     )
   
   def predict(self,X_test):
-    """Predict class for X.
+    """Predict class for X_test.
       the predicted class is the one with highest probability.
 
     Parameters
     ----------
-    X_test : array with shape = [n_samples, n_features],its dtype is float32.
+    X_test : array with shape = [n_samples, n_features],
+    its dtype is float32.
 
     Returns
     -------
-    y : array of shape = [n_samples,1]
+    y_pred : array of shape = [n_samples,1]
 
     """
     
@@ -101,6 +112,21 @@ class RF_LR(object):
     return y_pred
 
   def predict_proba(self,X_test):
+    """Predict class for X_test.
+      the list of classify probabilities.
+
+    Parameters
+    ----------
+    X_test : array with shape = [n_samples, n_features],
+    its dtype is float32.
+
+    Returns
+    -------
+    y_pred_proba : array of shape = [n_samples,1]
+    '''
+
+    """
+
     X_test_encodes = self.encoder.transform(
                           self.trees.apply(X_test)
 		      ).toarray()
@@ -108,9 +134,9 @@ class RF_LR(object):
     X_test_merge = []
     for i in range(0,len(X_test_encodes)):
       X_test_merge.append(list(X_test[i]) + list(X_test_encodes[i]))	
-    y_pred = self.lr.predict_proba(X_test_merge)
+    y_pred_proba = self.lr.predict_proba(X_test_merge)
 
-    return y_pred
+    return y_pred_proba
 
   def scores(self,X_test,y_test):
     """make a evaluation of the model.
@@ -141,7 +167,8 @@ class RF_LR(object):
     y_pred_proba = self.predict_proba(X_test)
     y_pred_proba = [p[1] for p in y_pred_proba]
 
-    average_precision_score = metrics.average_precision_score(y_test, y_pred)
+    average_precision_score = \
+                    metrics.average_precision_score(y_test, y_pred)
     roc_auc_score = metrics.roc_auc_score(y_test, y_pred_proba)
     precision_score = metrics.precision_score(y_test, y_pred)
     recall_score = metrics.recall_score(y_test, y_pred)

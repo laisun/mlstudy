@@ -13,7 +13,7 @@ from sklearn import metrics
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectFromModel
 
-from sklearn.neural_network import BernoulliRBM,MLPClassifier
+#from sklearn.neural_network import BernoulliRBM,MLPClassifier
 from sklearn import metrics
 
 import numpy as np
@@ -75,6 +75,7 @@ for n_estimators  in range(5,101,5):
   print "{0},{1}" .format \
         (n_estimators,clf_rf_lr.scores(X_test,y_test)[1])#[0]["roc_auc_score"])
 
+'''
 # neural network
 # require sklearn >= 0.18.0
 mlp = MLPClassifier(hidden_layer_sizes=(30,30,30))
@@ -108,6 +109,8 @@ print("Logistic regression using RBM features:\n%s\n" % (
 		metrics.classification_report(
 		    y_test,
 		    classifier.predict(X_test))))
+'''
+			
 '''
 from keras.models import Sequential
 from keras.layers import Dense,Dropout
