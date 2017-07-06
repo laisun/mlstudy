@@ -1,0 +1,149 @@
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+
+import os,sys
+import pandas as pd
+import numpy as np
+
+from sklearn.cross_validation import train_test_split
+import matplotlib.pyplot as plt
+from sklearn.utils import shuffle
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.gridspec as gridspec
+from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import TSNE
+
+import keras
+from keras.models import Model, load_model
+from keras.layers import Dense, Input
+from keras.callbacks import ModelCheckpoint, TensorBoard
+from keras import regularizers
+
+df = pd.read_csv('./creditcard.csv')
+print (df.shape)
+
+# 1. data pre-processing
+fraud = df[df.Class == 1]
+normal = df[df.Class == 0]
+print "fraud shape: ", fraud.shape
+print "normal shape: ", normal.shape
+
+# 采用交易金额数量进行class分类图表分析：
+f, (ax1, ax2) = plt.subplots(2, 1, sharex = True)
+
+bins = 50
+
+ax1.hist(fraud.Amount, bins = bins)
+ax1.set_title('Fraud')
+
+ax2.hist(normal.Amount, bins = bins)
+ax2.set_title('Normal')
+
+plt.xlabel('Amount($)')
+plt.ylabel('Number of Transactions')
+plt.xlim((0,20000))
+plt.yscale('log')
+plt.show()
+
+# 采用交易时间线进行class分类图表分析：
+
+f, (ax1, ax2) = plt.subplots(2, 1, sharex = True)
+
+bins = 50
+
+ax1.hist(fraud.Time, bins = bins)
+ax1.set_title('Fraud')
+
+ax2.hist(normal.Time, bins = bins)
+ax2.set_title('Normal')
+
+plt.xlabel('Time( in seconds)')
+plt.ylabel('Number of Transactions')
+plt.yscale('log')
+plt.show()
+
+
+from sklearn.preprocessing import StandardScaler
+data = df.drop(['Time'], axis=1)
+data['Amount'] = StandardScaler().fit_transform(data['Amount'].values.reshape(-1,1))
+
+x_train, x_test = train_test_split(data, test_size = 0.2, random_state=40)
+x_train = x_train[x_train.Class == 0]
+x_train = x_train.drop(['Class'], axis=1)
+
+y_test = x_test['Class']
+x_test = x_test.drop(['Class'], axis=1)
+
+x_train = x_train.values
+x_test = x_test.values
+
+#-- 搭建Autoencoder模型：自动编码器分别建立4个完全连接Dense层，分别为14，7，7，29个神经元。
+#-- 前两层用于编码器encode，最后两层用于解码器decode。训练期间将使用L1正规化
+
+input_dim = x_train.shape[1]
+encoding_dim = 14
+
+input_layer = Input(shape=(input_dim,))
+
+encoder = Dense(encoding_dim, activation = 'tanh') (input_layer)
+encoder = Dense(int(encoding_dim/2) , activation = 'relu') (encoder)
+
+decoder = Dense(int(encoding_dim/2) , activation = 'tanh') (encoder)
+decoder = Dense(input_dim, activation = 'relu') (decoder)
+
+auto_encoder = Model(input = input_layer, output = decoder)
+print auto_encoder.summary()
+
+# 训练模型设定为100个epochs，批量bitch大小为32个样本，并将最佳性能模型check-point点保存到一个文件。
+# 由Keras提供的ModelCheckpoint对于这些任务来说非常方便。此外，训练进度将以TensorBoard了解的格式导出。
+nb_epochs = 10
+batch_size = 32
+auto_encoder.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
+'''
+checkpointer = ModelCheckpoint(filepath='model.h5',
+                               verbose = 0,
+                               save_best_only = True)
+tensorboard = TensorBoard(log_dir= './log_dir',
+                          histogram_freq = 0,
+                          write_graph = True, 
+                          write_images = True)
+
+history = auto_encoder.fit(x_train, x_train, nb_epochs, batch_size,shuffle = True, 
+                 validation_data=(x_test,x_test), verbose = 1
+             #    ,callbacks=[checkpointer, None]
+             ).history
+
+'''
+
+class LossHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.losses = []
+        self.val_losses = []
+    '''
+    def on_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss'))
+    '''
+    def on_epoch_end(self, epoch , logs={}):
+        self.losses.append(logs.get('loss'))
+        self.val_losses.append(logs.get('val_loss'))
+
+history = LossHistory()
+
+auto_encoder.fit(x_train, x_train, batch_size=batch_size, nb_epoch = nb_epochs,
+                 shuffle = True, 
+                 validation_data=(x_test,x_test), 
+                 verbose = 1,
+                 callbacks=[history]
+             )
+ 
+print history.losses
+print history.val_losses
+
+plt.plot(history.losses)
+plt.plot(history.val_losses)
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train','test'], loc='upper right')
+plt.show()
