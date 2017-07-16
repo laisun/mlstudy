@@ -13,7 +13,7 @@ def set_to_dict(value_set):
   li = list(value_set)
   return dict((v, k) for k, v in enumerate(li))
 
-def bucket_encode(column_value,boundaries=[]):
+def bucket_encode(column_value, boundaries=[]):
   if column_value < boundaries[0]: return 0  
   for i in range(1,len(boundaries) - 1):
     if column_value >= boundaries[i] and column_value < boundaries[i+1]:
@@ -24,12 +24,12 @@ def bucket_encode(column_value,boundaries=[]):
 
 class DataPreprocessing(object):
   def __init__(self,
-               CATEGORICAL_COLUMNS,
-	       CONTINUOUS_COLUMNS,
-	       y_column,
-	       y_to_idx,
-	       BUCKET_COLUMNS = [],
-	       bucket_boundaries = []):
+               CATEGORICAL_COLUMNS, # 离散值属性
+	       CONTINUOUS_COLUMNS,  # 连续值属性
+	       y_column,            # y 标签属性
+	       y_to_idx,            # y 取值到整数的映射
+	       BUCKET_COLUMNS = [], # 分桶属性，例如年龄分成各个年龄段
+	       bucket_boundaries = []): # 分桶属性每个桶的边界
     """process the cate features and number features respectively.
     
     Parameters
@@ -52,6 +52,7 @@ class DataPreprocessing(object):
 
   def catefeat_v_to_id_mapping(self,csv_file):
     """get the value to id mapping for all of the cate columns.
+       获取每个离散属性的< 属性值－>id > 的映射
     """
     cate_feats_count = collections.defaultdict(set)
     for row in csv.DictReader(open(csv_file)):
@@ -63,16 +64,14 @@ class DataPreprocessing(object):
       self.cate_feat_id_mapping[feat] = set_to_dict(cate_feats_count[feat])
 
 
-  def read_data(self,csv_file,y_column=None):
+  def read_data(self, csv_file, y_column=None):
     """read the csv data file ,to get y labels list 
     and category column values and number column values.
     """
 
     y,X_num,X_cate = [],[],[]
 
-    count = 0
     for row in csv.DictReader(open(csv_file)):
-      count += 1
       # number features
       x1 = []
       for feat in self.CONTINUOUS_COLUMNS:
@@ -83,7 +82,8 @@ class DataPreprocessing(object):
 
       # cate features
       x2 = [ self.cate_feat_id_mapping[feat][row[feat].strip().lower()] 
-               for feat in self.CATEGORICAL_COLUMNS ]
+                           for feat in self.CATEGORICAL_COLUMNS ]
+
       for i in range(len(self.BUCKET_COLUMNS)):
 	feat = self.BUCKET_COLUMNS[i]  
 	bucket_value = bucket_encode(int(row[feat].strip()),
@@ -106,8 +106,7 @@ class DataPreprocessing(object):
     y_train,X_num,X_cate = self.read_data(train_data_file,self.y_column) 
     y_test,X_test_num,X_test_cate = self.read_data(test_data_file,self.y_column) 
 
-    # data processing,feature transform
-    # number feature processing
+    # 连续值处理: 标准化缩放
     X_all_num = np.array(X_num + X_test_num)
     X_num = np.array(X_num)
     X_test_num = np.array(X_test_num)
@@ -118,30 +117,33 @@ class DataPreprocessing(object):
     X_num = self.num_scaler.transform(X_num)
     X_test_num = self.num_scaler.transform(X_test_num)
 
-    # cate features processing
+    # 离散值处理: One-hot-encoding 
     self.cate_enc = preprocessing.OneHotEncoder()
-    self.cate_enc.fit( X_cate+X_test_cate )
+    self.cate_enc.fit( X_cate + X_test_cate )
     
     X_cate = self.cate_enc.transform(X_cate).toarray()
     X_test_cate = self.cate_enc.transform(X_test_cate).toarray()
 
-    X_train = []
-    for i in range(X_num.shape[0]):
-      X_train.append(list(X_num[i]) + list(X_cate[i]))
-    
-    X_test = []
-    for i in range(X_test_num.shape[0]):
-      X_test.append(list(X_test_num[i]) + list(X_test_cate[i]))
-  
+    X_train = self.add_num_cate_values(X_num, X_cate)
+    X_test = self.add_num_cate_values(X_test_num , X_test_cate)
     return y_train,X_train,y_test,X_test
 
-  def read_dev_data(self,dev_csv):
+  def read_dev_data(self, dev_csv):
     y_dev,X_num,X_cate = self.read_data(dev_csv,None) 
     X_num = self.num_scaler.transform(X_num)
     X_cate = self.cate_enc.transform(X_cate).toarray()
-
-    X_dev = []
-    for i in range(X_num.shape[0]):
-      X_dev.append(list(X_num[i]) + list(X_cate[i]))	
+    X_dev = self.add_num_cate_values(X_num , X_cate) 
     return X_dev,y_dev
 
+  def add_num_cate_values(self, X_num, X_cate):
+    X = []
+    assert(X_num.shape[0] == X_cate.shape[0])
+    shape1 = X_num.shape[0]
+    for i in range(shape1):
+      x = []
+      if len(self.CONTINUOUS_COLUMNS) > 0:
+        x += list(X_num[i])
+      if len(self.CATEGORICAL_COLUMNS) > 0:
+        x += list(X_cate[i])
+      X.append(x)
+    return X
