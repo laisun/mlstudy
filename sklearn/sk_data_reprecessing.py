@@ -17,7 +17,7 @@ def bucket_encode(column_value, boundaries=[]):
   if column_value < boundaries[0]: return 0  
   for i in range(1,len(boundaries) - 1):
     if column_value >= boundaries[i] and column_value < boundaries[i+1]:
-      return i	
+      return i    
   if column_value >= boundaries[len(boundaries) - 1]:
       return len(boundaries) - 1
   return 0
@@ -25,11 +25,11 @@ def bucket_encode(column_value, boundaries=[]):
 class DataPreprocessing(object):
   def __init__(self,
                CATEGORICAL_COLUMNS, # 离散值属性
-	       CONTINUOUS_COLUMNS,  # 连续值属性
-	       y_column,            # y 标签属性
-	       y_to_idx,            # y 取值到整数的映射
-	       BUCKET_COLUMNS = [], # 分桶属性，例如年龄分成各个年龄段
-	       bucket_boundaries = []): # 分桶属性每个桶的边界
+           CONTINUOUS_COLUMNS,  # 连续值属性
+           y_column,            # y 标签属性
+           y_to_idx,            # y 取值到整数的映射
+           BUCKET_COLUMNS = [], # 分桶属性，例如年龄分成各个年龄段
+           bucket_boundaries = []): # 分桶属性每个桶的边界
     """process the cate features and number features respectively.
     
     Parameters
@@ -40,7 +40,7 @@ class DataPreprocessing(object):
          y column name.
     y_to_idx : dict
          the mapping of y label name to id. 
-	 e.g. {'male':0,'female':1 }
+     e.g. {'male':0,'female':1 }
 
     """
     self.CATEGORICAL_COLUMNS = CATEGORICAL_COLUMNS
@@ -52,11 +52,11 @@ class DataPreprocessing(object):
 
   def catefeat_v_to_id_mapping(self,csv_file):
     """get the value to id mapping for all of the cate columns.
-       获取每个离散属性的< 属性值－>id > 的映射
+       获取每个离散属性的< 属性值->id > 的映射
     """
     cate_feats_count = collections.defaultdict(set)
     for row in csv.DictReader(open(csv_file)):
-      for feat in self.CATEGORICAL_COLUMNS:	
+      for feat in self.CATEGORICAL_COLUMNS:    
         cate_feats_count[feat].update([row[feat].strip().lower()])
 
     self.cate_feat_id_mapping = collections.defaultdict(dict)
@@ -75,31 +75,30 @@ class DataPreprocessing(object):
       # number features
       x1 = []
       for feat in self.CONTINUOUS_COLUMNS:
-	w = 0.0
-	if row[feat].strip() != 'NULL' and row[feat].strip() != '':
-	  w = float(row[feat].strip()) 
-	x1.append(w)
+        w = 0.0
+        if row[feat].strip() != 'NULL' and row[feat].strip() != '':
+          w = float(row[feat].strip()) 
+        x1.append(w)
 
       # cate features
       x2 = [ self.cate_feat_id_mapping[feat][row[feat].strip().lower()] 
                            for feat in self.CATEGORICAL_COLUMNS ]
 
       for i in range(len(self.BUCKET_COLUMNS)):
-	feat = self.BUCKET_COLUMNS[i]  
-	bucket_value = bucket_encode(int(row[feat].strip()),
-	                             self.bucket_boundaries[i])  
+        feat = self.BUCKET_COLUMNS[i]  
+        bucket_value = bucket_encode(int(row[feat].strip()),
+                                 self.bucket_boundaries[i])  
         x2.append(bucket_value)
+
+      X_num.append(x1)
+      X_cate.append(x2)
 
       # y label
       if y_column:
         v = row[y_column].strip()
         if v in self.y_to_idx.keys():
           y.append(self.y_to_idx[v])
-          X_num.append(x1)
-          X_cate.append(x2)
-      else:
-          X_num.append(x1)
-	  X_cate.append(x2)
+
     return y,X_num,X_cate
 
   def read_train_test(self,train_data_file,test_data_file):
