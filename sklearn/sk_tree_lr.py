@@ -23,11 +23,11 @@ class RF_LR(object):
   tree models: 随机森林模型
   LR :逻辑回归模型
 
-  1)X_train训练随机森林分类模型;
-  2)随机森林的每棵子树对样本分别分类，得到分类结果;
-  3)用encoder对子树的分类结果进行编码，得到X_train_encode;
-  4)X_train + X_train_encode 组成新特征，作为LR的训练特征;
-  5)训练LR分类模型.   
+  1) X_train训练随机森林分类模型;
+  2) 随机森林的每棵子树对样本分别分类，得到分类结果;
+  3) 用encoder对子树的分类结果进行编码，得到X_train_encode;
+  4) X_train + X_train_encode 组成新特征，作为LR的训练特征;
+  5) 训练LR分类模型.   
  
   Parameters
   ----------
