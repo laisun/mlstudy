@@ -3,9 +3,10 @@
 
 import os,sys
 import csv
-
+import math
+import matplotlib.pyplot as plt
 import sklearn
-from sklearn.ensemble import RandomForestClassifier,RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.cross_validation import train_test_split,cross_val_score
 from sklearn import preprocessing,linear_model
@@ -19,13 +20,13 @@ from sklearn import metrics
 import numpy as np
 import collections
 
-from adult_data import *
+#from adult_data import *
 #from wx_marry_data import *
+#from wx_game_query_feas import *
+from wx_zx_querys_data import *
+from roc_ks_curve import *
 
 y,X,y_test,X_test = read_adult_data()
-#y,X,y_test,X_test = read_marry_data()
-
-#X_dev,y_dev = read_dev_marry_data()
 
 def test_scores(clf):
   clf = clf.fit(X, y)
@@ -38,6 +39,9 @@ def test_scores(clf):
   recall_score = metrics.recall_score(y_test, y_pred)
   accuracy_score = metrics.accuracy_score(y_test, y_pred)
   print metrics.classification_report(y_test,y_pred)
+
+  plot_ks(y_test,y_proba)
+  plot_auc(y_test,y_proba)
 
   return "auc = {:g}, precison = {:g}, recall = {:g}, acc = {:g}".format\
 	 (roc_auc_score,precision_score,recall_score,accuracy_score)
@@ -52,11 +56,11 @@ clf_fc = Pipeline([
         ('classification', sklearn.linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6))
 ])
 
-print "FC  :",test_scores(clf_fc)
 print "LR  :",test_scores(clf_lr)
 #print "SVM :",test_scores(clf_svm)
-print "RF  :",test_scores(clf_rf)
+#print "RF  :",test_scores(clf_rf)
 print "GBDT : " ,test_scores(clf_gbdt)
+print "FC  :",test_scores(clf_fc)
 
 from sk_tree_lr import RF_LR,GBDT_LR
 print "RF_LR"
