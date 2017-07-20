@@ -14,10 +14,12 @@ cates = ["workclass", "education", "marital_status", "occupation",
          "relationship", "race", "gender", "native_country"
 ]
 
-numbers = ["age", "education_num", "capital_gain", "capital_loss",
+numbers = [ "education_num", "capital_gain", "capital_loss",
            "hours_per_week"
 ]
 
+bucket = ["age"]
+boundaries = [ [18, 25, 30, 35, 40, 45,50, 55, 60, 65] ]
 y_column = 'income_bracket'
 v_to_idx = { 
              '>50K':0,
@@ -30,7 +32,9 @@ adult_data_processing = DataPreprocessing(
         cates,
         numbers,
         y_column,
-        v_to_idx
+        v_to_idx,
+        bucket,
+        boundaries
 )
 
 adult_data_processing.catefeat_v_to_id_mapping('../data/adult/adult.data')
