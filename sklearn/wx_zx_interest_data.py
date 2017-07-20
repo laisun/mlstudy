@@ -17,9 +17,9 @@ y_column = 'gbie'
 v_to_idx = { 
              '0':0,
 	         '1':1,
-	   }
+}
 
-adult_data_processing = DataPreprocessing (
+dp = DataPreprocessing (
                 cates,
 			    numbers,
 			    y_column,
@@ -27,12 +27,13 @@ adult_data_processing = DataPreprocessing (
 )
 
 path='/home/lx/work/mmdataapp/wxalonso/wxqueryanlysis/data/zx_user_train/'
-adult_data_processing.catefeat_v_to_id_mapping( path + 'alonso_zx_test_interest_feas_201704.csv')
+dp.catefeat_v_to_id_mapping( path + 'alonso_zx_test_interest_feas_201704.csv')
+
 def read_adult_data():
   y_train,X_train,y_test,X_test = \
-      adult_data_processing.read_train_test(
+      dp.read_train_test (
            path + 'alonso_zx_test_interest_feas_201704.csv_train.txt',
 	       path + 'alonso_zx_test_interest_feas_201704.csv_test.txt'
-      )	
+  )	
   return y_train,X_train,y_test,X_test
 

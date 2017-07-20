@@ -20,9 +20,9 @@ from sklearn import metrics
 import numpy as np
 import collections
 
-#from adult_data import *
+from adult_data import *
 #from wx_marry_data import *
-from wx_game_query_feas import *
+#from wx_game_query_feas import *
 #from wx_zx_querys_data import *
 from roc_ks_curve import *
 
