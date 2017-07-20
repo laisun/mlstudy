@@ -19,12 +19,12 @@ v_to_idx = {
 	         '1':1,
 	   }
 
-adult_data_processing = DataPreprocessing(
-                            cates,
+adult_data_processing = DataPreprocessing (
+                cates,
 			    numbers,
 			    y_column,
-                            v_to_idx
-			)
+                v_to_idx
+)
 
 path='/home/lx/work/mmdataapp/wxalonso/wxqueryanlysis/data/zx_user_train/'
 adult_data_processing.catefeat_v_to_id_mapping( path + 'alonso_zx_test_interest_feas_201704.csv')

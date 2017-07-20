@@ -24,7 +24,7 @@ def bucket_encode(column_value, boundaries=[]):
 
 class DataPreprocessing(object):
   def __init__(self,
-               CATEGORICAL_COLUMNS, # 离散值属性
+           CATEGORICAL_COLUMNS, # 离散值属性
            CONTINUOUS_COLUMNS,  # 连续值属性
            y_column,            # y 标签属性
            y_to_idx,            # y 取值到整数的映射
@@ -117,14 +117,17 @@ class DataPreprocessing(object):
     X_test_num = self.num_scaler.transform(X_test_num)
 
     # 离散值处理: One-hot-encoding 
-    self.cate_enc = preprocessing.OneHotEncoder()
-    self.cate_enc.fit( X_cate + X_test_cate )
-    
-    X_cate = self.cate_enc.transform(X_cate).toarray()
-    X_test_cate = self.cate_enc.transform(X_test_cate).toarray()
-
+    if len(self.CATEGORICAL_COLUMNS) > 0:
+      self.cate_enc = preprocessing.OneHotEncoder()
+      self.cate_enc.fit( X_cate + X_test_cate )
+      X_cate = self.cate_enc.transform(X_cate).toarray()
+      X_test_cate = self.cate_enc.transform(X_test_cate).toarray()
+    else:
+      X_cate = None
+      X_test_cate = None
     X_train = self.add_num_cate_values(X_num, X_cate)
     X_test = self.add_num_cate_values(X_test_num , X_test_cate)
+      
     return y_train,X_train,y_test,X_test
 
   def read_dev_data(self, dev_csv):
@@ -136,6 +139,13 @@ class DataPreprocessing(object):
 
   def add_num_cate_values(self, X_num, X_cate):
     X = []
+    if X_cate is None:
+      shape1 = X_num.shape[0]
+      for i in range(shape1):
+        x = list(X_num[i])
+        X.append(x)
+      return X
+
     assert(X_num.shape[0] == X_cate.shape[0])
     shape1 = X_num.shape[0]
     for i in range(shape1):

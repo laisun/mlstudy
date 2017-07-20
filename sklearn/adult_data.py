@@ -35,7 +35,17 @@ def read_adult_data():
   y_train,X_train,y_test,X_test = \
       adult_data_processing.read_train_test(
            '../data/adult/adult.data',
-	   '../data/adult/adult.test'
+	       '../data/adult/adult.test'
       )	
   return y_train,X_train,y_test,X_test
 
+def to_svm(X,Y):
+  s = "fea_"
+  for i in range(len(X)):
+    x = X[i]
+    y = Y[i]
+    li = []
+    li.append(str(y))
+    for j in range(len(x)):
+      li.append(str(j+1) + ":" + str(x[j]))
+    print " ".join(li)

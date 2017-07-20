@@ -87,7 +87,9 @@ class RF_LR(object):
              X_train_merge, 
              y_train
     )
-  
+
+    return self
+ 
   def predict(self,X_test):
     """Predict class for X_test.
       the predicted class is the one with highest probability.
@@ -249,7 +251,9 @@ class GBDT_LR(object):
             X_train_merge,
             y_train
 	 )
-  
+     
+    return self
+ 
   def predict(self,X_test):
     """Predict class for X.
       the predicted class is the one with highest probability.

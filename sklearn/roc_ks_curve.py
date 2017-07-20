@@ -77,6 +77,7 @@ def plot_auc(y_test,y_pred_prob):
 def plot_ks(y_test,y_pred_prob):
   fpr, tpr, thresholds = metrics.roc_curve(y_test,y_pred_prob)
   l = len(fpr)
+  print l
   x = [i*1.0 / l for i in xrange(l) ]
   ks = max([math.fabs(fpr[i] - tpr[i]) for i in xrange(l)])
   plt.title('KS = $max(tpr - fpr)$ = %.2f' % ks)

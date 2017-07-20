@@ -14,7 +14,7 @@ from sklearn import metrics
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectFromModel
 
-#from sklearn.neural_network import BernoulliRBM,MLPClassifier
+from sklearn.neural_network import BernoulliRBM,MLPClassifier
 from sklearn import metrics
 
 import numpy as np
@@ -22,8 +22,8 @@ import collections
 
 #from adult_data import *
 #from wx_marry_data import *
-#from wx_game_query_feas import *
-from wx_zx_querys_data import *
+from wx_game_query_feas import *
+#from wx_zx_querys_data import *
 from roc_ks_curve import *
 
 y,X,y_test,X_test = read_adult_data()
@@ -46,40 +46,31 @@ def test_scores(clf):
   return "auc = {:g}, precison = {:g}, recall = {:g}, acc = {:g}".format\
 	 (roc_auc_score,precision_score,recall_score,accuracy_score)
 
-clf_rf = RandomForestClassifier(n_estimators=100)
-clf_gbdt = GradientBoostingClassifier(n_estimators=100)
+clf_rf = RandomForestClassifier(n_estimators=10)
+clf_gbdt = GradientBoostingClassifier(n_estimators=10)
 clf_svm = sklearn.svm.SVC()
-clf_lr = sklearn.linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
+clf_lr = sklearn.linear_model.LogisticRegression(C=1.0, penalty='l2', tol=1e-6)
 
 clf_fc = Pipeline([
         ('feature_selection', SelectFromModel(RandomForestClassifier())),
-        ('classification', sklearn.linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6))
+        ('classification', sklearn.linear_model.LogisticRegression(C=1.0, penalty='l2', tol=1e-6))
 ])
 
+'''
 print "LR  :",test_scores(clf_lr)
 #print "SVM :",test_scores(clf_svm)
-#print "RF  :",test_scores(clf_rf)
-print "GBDT : " ,test_scores(clf_gbdt)
+print "RF  :",test_scores(clf_rf)
+print "GBDT:",test_scores(clf_gbdt)
 print "FC  :",test_scores(clf_fc)
+'''
 
 from sk_tree_lr import RF_LR,GBDT_LR
-print "RF_LR"
-print "n_estimators,auc"
-for n_estimators  in range(5,101,5):
-  clf_rf_lr = RF_LR(n_estimator=n_estimators)
-  clf_rf_lr.fit(X, y)
-  print "{0},{1}".format\
-      (n_estimators,clf_rf_lr.scores(X_test,y_test)[1])#[0]["roc_auc_score"])
+clf_rf_lr = RF_LR(n_estimator=20)
+print "RF_LR:", test_scores(clf_rf_lr)
 
-print "GBDT_LR"
-print "n_estimators,auc"
-for n_estimators  in range(5,101,5):
-  clf_rf_lr = GBDT_LR(n_estimator=n_estimators)
-  clf_rf_lr.fit(X, y)
-  print "{0},{1}" .format \
-        (n_estimators,clf_rf_lr.scores(X_test,y_test)[1])#[0]["roc_auc_score"])
+clf_rf_lr = GBDT_LR(n_estimator=20)
+print "GBDT_LR:", test_scores(clf_rf_lr)
 
-'''
 # neural network
 # require sklearn >= 0.18.0
 mlp = MLPClassifier(hidden_layer_sizes=(30,30,30))
@@ -104,7 +95,7 @@ classifier = Pipeline(
 rbm.learning_rate = 0.01
 rbm.n_iter = 200 
 rbm.n_components = 256 
-logistic.C = 1000.0
+logistic.C = 1.0
 
 # Training RBM-Logistic Pipeline
 classifier.fit(X, y)
@@ -113,7 +104,6 @@ print("Logistic regression using RBM features:\n%s\n" % (
 		metrics.classification_report(
 		    y_test,
 		    classifier.predict(X_test))))
-'''
 			
 '''
 from keras.models import Sequential
