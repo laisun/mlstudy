@@ -56,14 +56,13 @@ clf_fc = Pipeline([
         ('classification', sklearn.linear_model.LogisticRegression(C=1.0, penalty='l2', tol=1e-6))
 ])
 
-'''
 print "LR  :",test_scores(clf_lr)
 #print "SVM :",test_scores(clf_svm)
 print "RF  :",test_scores(clf_rf)
 print "GBDT:",test_scores(clf_gbdt)
 print "FC  :",test_scores(clf_fc)
-'''
 
+'''
 from sk_tree_lr import RF_LR,GBDT_LR
 clf_rf_lr = RF_LR(n_estimator=20)
 print "RF_LR:", test_scores(clf_rf_lr)
@@ -104,6 +103,7 @@ print("Logistic regression using RBM features:\n%s\n" % (
 		metrics.classification_report(
 		    y_test,
 		    classifier.predict(X_test))))
+'''
 			
 '''
 from keras.models import Sequential
